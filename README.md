@@ -24,7 +24,7 @@
 - Git、curl 和稳定网络
 - 不需要 GCP 项目，不需要信用卡，不需要本地 NVIDIA GPU
 
-## 5 分钟快速开始
+## 快速启动（首次完整运行通常约 1–2 小时）
 
 ```bash
 git clone https://github.com/zhoujianbin/minimind-colab-free-gpu.git
@@ -36,7 +36,7 @@ bash scripts/03_train.sh
 bash scripts/04_status.sh
 ```
 
-首次执行 `colab new` 会打印 Google OAuth 地址。用准备使用 Colab 的账号授权，并把页面给出的代码粘贴回终端。
+首次执行 `colab new` 会打印 Google OAuth 地址。用准备使用 Colab 的账号授权，并把页面给出的代码粘贴回终端。上述命令只需几分钟即可启动，但下载数据和完整训练实测接近 1 小时，网络、T4 排队和免费配额会让总时间变化。若新 shell 找不到 `colab`，先执行 `export PATH="$HOME/.local/bin:$PATH"`。免费 T4 可能暂时申请失败，此时请稍后重试，而不要把 CPU 会话误当成 T4。
 
 训练结束后：
 
@@ -99,9 +99,9 @@ colab stop -s minimind-t4
 SAMPLE_COUNT=50000 bash scripts/02_prepare_data.sh
 ```
 
-完整预训练数据约 1.16GB。降低到 1 万条可快速试跑，提高到 10 万条效果会更好但训练更慢。
+本次下载时完整预训练文件约 1.16GB；远端文件可能更新，请至少预留数 GB 磁盘和足够下载时间。降低到 1 万条适合验证流程；提高到 10 万条会增加覆盖量和训练时间，但是否改善效果必须通过固定评测验证。当前脚本为了精确复现实测结果，确定性地取文件前 N 行，而不是随机抽样，因此存在顺序偏差，并会生成包含样本数、版本和 SHA-256 的 manifest。
 
-数据配比是训练超参数：本次预训练子集以创作生成（18.53%）和知识解释（18.21%）为主，代码技术仅约 3.67%；SFT 按 user 消息估算，身份与日常对话约 30.64%、知识解释约 26.55%、代码技术不足 1%。这解释了模型为什么会自我介绍，却不擅长写代码。由于原数据没有官方类别标签，这些比例是透明关键词规则的弱监督估算。长度方面，预训练样本平均约 203.5 token，27.3% 超过 256 token；5 万条 SFT 对话共约 35.5 万条消息。完整方法、局限、数据混合建议见 [数据配比、T4 性能与参数选择](docs/data-performance-hyperparameters.md)。可在 Colab 中运行：
+数据配比是训练超参数：本次预训练子集以创作生成（18.53%）和知识解释（18.21%）为主，代码技术仅约 3.67%；SFT 按 user 消息估算，身份与日常对话约 30.64%、知识解释约 26.55%、代码技术不足 1%。这与本次模型更容易自我介绍、但代码测试表现较弱的观察相关；由于没有对照实验，不能据此断言单一因果关系。由于原数据没有官方类别标签，这些比例是透明关键词规则的弱监督估算。长度方面，预训练样本平均约 203.5 token，27.3% 超过 256 token；5 万条 SFT 对话共约 35.5 万条消息。完整方法、局限、数据混合建议见 [数据配比、T4 性能与参数选择](docs/data-performance-hyperparameters.md)。可在 Colab 中运行：
 
 ```bash
 python /content/tutorial/remote/analyze_data_mix.py
@@ -149,11 +149,10 @@ watch -n 20 'bash scripts/04_status.sh'
 bash scripts/05_chat.sh
 ```
 
-然后运行脚本注释中给出的 `eval_llm.py` 命令。也可以上传并执行批量测试：
+脚本会通过 `colab exec` 在能访问 CUDA 的 Colab kernel 内执行推理；输入问题，输入 `exit` 结束。每次问题都会重新加载约 64 MiB 的教学模型，可能需要等待十几秒。普通 SSH shell 在部分 Colab 运行时看不到 CUDA，因此不用于启动 GPU 推理。也可以执行批量测试：
 
 ```bash
-colab upload -s minimind-t4 remote/test_prompts.py /content/test_prompts.py
-colab exec -s minimind-t4 -f /content/test_prompts.py --timeout 600
+colab exec -s minimind-t4 -f remote/test_prompts.py --timeout 600
 ```
 
 30M 模型 + 5 万条数据只能证明链路跑通。它可能出现事实错误、重复、病句或无法写代码，这不是训练失败，而是模型和数据规模的能力上限。
@@ -172,16 +171,22 @@ bash scripts/06_download_models.sh outputs
 
 CLI 是主路线；如果想在网页理解每一步，可打开 [notebooks/colab_minimind_from_scratch.ipynb](notebooks/colab_minimind_from_scratch.ipynb)。Notebook 不会替代 CLI 会话管理。
 
+## 发布前复现状态
+
+每次发布前验证的环境、配置、耗时、哈希和已知限制记录在 [发布前复现报告](docs/reproducibility-report.md)。只有报告明确写明 T4 完整测试通过，才表示当前 commit 已在全新 T4 环境中端到端验证。
+
 ## 实测结果
 
 一次实测配置：5 万条预训练 + 5 万条 SFT，Tesla T4：
 
 - 模型参数：30.03M
 - 两个权重各约 64 MiB
-- 预训练：3125 step，约 22 分 31 秒
-- SFT：6250 step，约 35 分 18 秒
-- 两阶段合计：约 57 分 49 秒
-- 最终一次 loss：约 2.34
+- 最新发布前复现：预训练 3125 个 DataLoader mini-batch step，393 秒
+- 最新发布前复现：SFT 6250 个 DataLoader mini-batch step，725 秒
+- 两阶段合计：1118 秒，即 18 分 38 秒
+- 最终记录：预训练 loss 3.3587，SFT loss 2.3290
+- optimizer update 数还要除以梯度累积步数，不能把日志 step 直接当作参数更新次数
+- 另一历史会话曾用约 58 分钟；免费 T4 性能和资源回收时间并不稳定
 - 推理速度：约 35–79 token/s
 - 新版训练脚本会自动记录 `PRETRAIN_SECONDS`、`SFT_SECONDS` 和 `TOTAL_SECONDS`，方便比较不同 T4 会话和参数配置
 
@@ -203,4 +208,5 @@ Colab 免费资源不保证，可能限时、断线或回收 GPU。禁止挖矿�
 
 - 模型与训练代码来自 [jingyaogong/minimind](https://github.com/jingyaogong/minimind)，Apache-2.0。
 - Colab CLI 来自 [googlecolab/google-colab-cli](https://github.com/googlecolab/google-colab-cli)。
-- 本仓库使用 Apache-2.0。数据集许可请以数据发布页为准。
+- 本仓库原创内容使用 Apache-2.0。第三方版本、署名和许可证边界见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+- 教学数据集页面标示为 CC BY-NC 4.0，禁止未经许可的商业用途；数据和训练权重的使用权不由本仓库授予。
