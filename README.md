@@ -101,9 +101,10 @@ SAMPLE_COUNT=50000 bash scripts/02_prepare_data.sh
 
 完整预训练数据约 1.16GB。降低到 1 万条可快速试跑，提高到 10 万条效果会更好但训练更慢。
 
-本次 5 万条预训练样本平均约 203.5 token，P50 为 176 token，27.3% 超过 256 token；5 万条 SFT 对话平均包含 7.1 条消息，共约 35.5 万条 user/assistant 消息。完整统计、数据样例、抽样偏差说明见 [数据分布、T4 性能与参数选择](docs/data-performance-hyperparameters.md)。可在 Colab 中运行：
+数据配比是训练超参数：本次预训练子集以创作生成（18.53%）和知识解释（18.21%）为主，代码技术仅约 3.67%；SFT 按 user 消息估算，身份与日常对话约 30.64%、知识解释约 26.55%、代码技术不足 1%。这解释了模型为什么会自我介绍，却不擅长写代码。由于原数据没有官方类别标签，这些比例是透明关键词规则的弱监督估算。长度方面，预训练样本平均约 203.5 token，27.3% 超过 256 token；5 万条 SFT 对话共约 35.5 万条消息。完整方法、局限、数据混合建议见 [数据配比、T4 性能与参数选择](docs/data-performance-hyperparameters.md)。可在 Colab 中运行：
 
 ```bash
+python /content/tutorial/remote/analyze_data_mix.py
 python /content/tutorial/remote/analyze_dataset.py
 ```
 
