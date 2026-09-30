@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+outputs/
+checkpoints/
+models/
+*.pth
+*.pt
+*.bin
+*.safetensors
+data/*.jsonl
+!data/README.md
+.DS_Store
