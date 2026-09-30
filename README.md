@@ -27,8 +27,8 @@
 ## 5 分钟快速开始
 
 ```bash
-git clone <你的仓库地址>
-cd colab-t4-train-llm-from-scratch
+git clone https://github.com/zhoujianbin/minimind-colab-free-gpu.git
+cd minimind-colab-free-gpu
 bash scripts/00_install_colab_cli.sh
 bash scripts/01_create_t4_session.sh
 SAMPLE_COUNT=50000 bash scripts/02_prepare_data.sh
