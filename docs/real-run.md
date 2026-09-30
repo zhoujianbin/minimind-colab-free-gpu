@@ -17,9 +17,15 @@
 
 - pretrain_512.pth：约 64 MiB
 - full_sft_512.pth：约 64 MiB
-- SFT：6250/6250 step 正常完成
-- 最后一次记录 loss：2.3399
+- 预训练：3125/3125 step，最终记录 loss 3.3623
+- SFT：6250/6250 step，最终记录 loss 2.3399
+- 数据子集生成完成：约 01:58:19
+- 预训练权重生成：约 02:20:50，估算 22 分 31 秒
+- SFT 权重生成：约 02:56:08，估算 35 分 18 秒
+- 两阶段总训练：约 57 分 49 秒
 - T4 推理：约 35–79 token/s
+
+时间来自同一 VM 上数据文件与权重文件的时间戳，包含少量保存和阶段切换开销。更详细的数据分布、吞吐计算和参数选择见 [data-performance-hyperparameters.md](data-performance-hyperparameters.md)。
 
 ## 质量说明
 

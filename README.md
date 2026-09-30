@@ -101,6 +101,12 @@ SAMPLE_COUNT=50000 bash scripts/02_prepare_data.sh
 
 完整预训练数据约 1.16GB。降低到 1 万条可快速试跑，提高到 10 万条效果会更好但训练更慢。
 
+本次 5 万条预训练样本平均约 203.5 token，P50 为 176 token，27.3% 超过 256 token；5 万条 SFT 对话平均包含 7.1 条消息，共约 35.5 万条 user/assistant 消息。完整统计、数据样例、抽样偏差说明见 [数据分布、T4 性能与参数选择](docs/data-performance-hyperparameters.md)。可在 Colab 中运行：
+
+```bash
+python /content/tutorial/remote/analyze_dataset.py
+```
+
 ## 第四步：从零预训练
 
 “从零”表示模型参数由随机数初始化，而不是下载一个现成模型再微调。预训练让模型学习文本的统计规律和“预测下一个 token”。
@@ -115,6 +121,8 @@ SAMPLE_COUNT=50000 bash scripts/02_prepare_data.sh
 | 序列长度 | 256 |
 | epoch | 1 |
 | 有效 batch | 64 |
+
+选择 512 hidden size 和 8 层，是为了把模型控制在约 30M 参数：能在 T4 16GB 上从零训练，又能比极小玩具模型展示更明显的学习过程。预训练使用 batch 16 × 梯度累积 4，兼顾显存和梯度稳定性。各参数的选择逻辑、OOM 时如何调整以及实验设计方法见 [参数详解](docs/data-performance-hyperparameters.md#5-参数为什么这样选)。
 
 ## 第五步：SFT
 
@@ -169,9 +177,12 @@ CLI 是主路线；如果想在网页理解每一步，可打开 [notebooks/cola
 
 - 模型参数：30.03M
 - 两个权重各约 64 MiB
-- SFT 共 6250 step
+- 预训练：3125 step，约 22 分 31 秒
+- SFT：6250 step，约 35 分 18 秒
+- 两阶段合计：约 57 分 49 秒
 - 最终一次 loss：约 2.34
 - 推理速度：约 35–79 token/s
+- 新版训练脚本会自动记录 `PRETRAIN_SECONDS`、`SFT_SECONDS` 和 `TOTAL_SECONDS`，方便比较不同 T4 会话和参数配置
 
 结果能进行简单中文生成，但质量有限。要改善效果，可逐步增加数据量、epoch、上下文长度和模型尺寸，每次只改一个变量。
 
