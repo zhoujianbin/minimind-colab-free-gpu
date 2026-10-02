@@ -122,7 +122,7 @@ python /content/tutorial/remote/analyze_dataset.py
 | 序列长度 | 256 |
 | epoch | 1 |
 | 有效 batch | 64 |
-| dtype | float16（T4 推荐） |
+| dtype | bfloat16（本次公开实测） |
 
 选择 512 hidden size 和 8 层，是为了把模型控制在约 30M 参数：能在 T4 16GB 上从零训练，又能比极小玩具模型展示更明显的学习过程。预训练使用 batch 16 × 梯度累积 4，兼顾显存和梯度稳定性。各参数的选择逻辑、OOM 时如何调整以及实验设计方法见 [参数详解](docs/data-performance-hyperparameters.md#5-参数为什么这样选)。
 
@@ -192,7 +192,7 @@ CLI 是主路线；如果想在网页理解每一步，可打开 [notebooks/cola
 
 ## 实测结果
 
-当前公开实测配置：5 万条预训练 + 5 万条 SFT，Tesla T4，FP16 训练；同时保留了 BF16 对照结果：
+当前公开实测配置：5 万条预训练 + 5 万条 SFT，Tesla T4，BF16 训练；同时保留了同条件 FP16 对照结果：
 
 - 模型参数：30.03M
 - 两个权重各约 64 MiB
