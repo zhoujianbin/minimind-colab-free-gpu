@@ -1,4 +1,5 @@
-# minimind-colab-free-gpu 用 Google Colab 免费 T4 从零训练一个语言模型
+# minimind-colab-free-gpu 
+# 用 Google Colab 免费 T4 从零训练一个语言模型
 
 > 面向第一次接触大模型训练的学习者：使用 **Colab CLI + MiniMind**，从随机权重开始完成预训练、监督微调（SFT）、中文对话测试和模型下载。
 
